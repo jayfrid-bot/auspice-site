@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#050f08">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="A daily morning misery assessment. The sadder the score, the better the day.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dew-pression">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Dew-pression Index</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root {
+  color-scheme: dark;
+  --page: #050f08; --s1: #0b1f11; --s2: #12301b;
+  --ink: #f3ffe5; --ink-2: #c5dbb8; --ink-3: #8fa98a;
+  --dew-200: #e4ff8a; --dew-300: #cdf94a; --dew-400: #b8ef16; --dew-500: #94c80d; --dew-600: #6b9a0a;
+  --on-dew: #06130a;
+  --track: #1f4a24; --grid: #1a3322; --axis: #2c4a33;
+  --hot: #ff4d5a; --on-hot: #2a0408; --cool: #4d94ff;
+  --ring: rgba(184, 239, 22, .26);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; min-height: 100dvh;
+  background: var(--page); color: var(--ink);
+  font: 400 16px/1.45 var(--font);
+  -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+}
+body::before {
+  content: ""; position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(120% 60% at 0% -8%, rgba(184, 239, 22, .20), transparent 62%),
+    radial-gradient(90% 55% at 105% 108%, rgba(77, 148, 255, .16), transparent 62%),
+    linear-gradient(112deg, transparent 0 62%, rgba(255, 77, 90, .07) 62% 66%, transparent 66%),
+    var(--page);
+}
+#bubbles { position: fixed; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; pointer-events: none; z-index: -1; }
+#bubbles span {
+  position: absolute; bottom: -40px; border-radius: 50%;
+  border: 1px solid rgba(184, 239, 22, .55);
+  background: radial-gradient(circle at 30% 30%, rgba(228, 255, 138, .5), rgba(184, 239, 22, .08) 58%);
+  animation: rise linear infinite;
+}
+.app {
+  width: 100%; max-width: 520px; margin: 0 auto;
+  padding: calc(10px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+#view { display: flex; flex-direction: column; gap: 16px; }
+#view.hop > * { animation: hop .38s cubic-bezier(.2, .9, .3, 1.15) both; }
+h1, h2, h3, p, ul, figure { margin: 0; }
+h1:focus, h2:focus { outline: none; }
+.nb { white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--dew-200); outline-offset: 3px; border-radius: 10px; }
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* type */
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.h3 { margin-bottom: 12px; font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.hint { color: var(--ink-2); font-size: 15px; }
+.wordmark { font-size: clamp(34px, 11vw, 48px); line-height: .92; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: -.02em; }
+.wordmark b { color: var(--dew-400); }
+.wordmark span { display: block; font-size: .5em; letter-spacing: .32em; color: var(--ink-2); margin-top: 6px; }
+.wordmark::after { content: ""; display: block; width: 72px; height: 6px; margin-top: 10px; background: var(--hot); transform: skewX(-30deg); }
+
+/* shell */
+.card {
+  position: relative; padding: 18px; border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .015)), var(--s1);
+  border: 1px solid var(--ring);
+}
+.brand { display: flex; align-items: center; gap: 14px; padding-top: 4px; }
+.logo { flex: none; width: 76px; height: 91px; filter: drop-shadow(0 0 18px rgba(184, 239, 22, .45)); animation: bob 4s ease-in-out infinite; }
+.greet { font-size: 22px; font-weight: 800; }
+.tagline { color: var(--ink-2); font-style: italic; }
+.topbar { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.topbar .title { flex: 1; font-size: 22px; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: -.01em; }
+.icon-btn {
+  flex: none; width: 48px; height: 48px; display: grid; place-items: center; cursor: pointer;
+  border-radius: 14px; border: 1px solid var(--ring); background: rgba(255, 255, 255, .04); color: var(--ink);
+  touch-action: manipulation;
+}
+.icon-btn .ico { width: 22px; height: 22px; }
+.ico { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.steps { flex: 1; display: flex; gap: 6px; }
+.steps i { flex: 1; height: 8px; border-radius: 4px; background: var(--track); }
+.steps i.done { background: var(--dew-500); }
+.steps i.now { background: var(--dew-300); box-shadow: 0 0 12px rgba(184, 239, 22, .7); }
+.count { min-width: 2.6em; text-align: right; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+/* buttons */
+.btn {
+  appearance: none; -webkit-appearance: none; border: 0; cursor: pointer; touch-action: manipulation;
+  min-height: 56px; padding: 0 22px; border-radius: 16px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  font: 900 italic 17px/1 var(--font); letter-spacing: .02em; text-transform: uppercase; text-align: center;
+  color: var(--on-dew);
+  background: linear-gradient(180deg, var(--dew-300), var(--dew-400) 55%, var(--dew-500));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .22) inset, 0 8px 24px -6px rgba(184, 239, 22, .5), 0 2px 0 var(--dew-600);
+  transition: transform .08s;
+}
+.btn:active { transform: translateY(2px) scale(.99); }
+.btn.ghost { color: var(--ink); background: transparent; box-shadow: 0 0 0 1.5px var(--ring) inset; }
+.btn.danger { color: var(--hot); background: transparent; box-shadow: 0 0 0 1.5px rgba(255, 77, 90, .45) inset; }
+.btn.block { width: 100%; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn .ico { width: 20px; height: 20px; }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-row .btn { padding: 0 10px; font-size: 15px; }
+.btn-row .wide { grid-column: 1 / -1; font-size: 17px; }
+.stick { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 5; }
+
+/* home */
+.cta { display: flex; flex-direction: column; gap: 10px; }
+.cta h2 { font-size: 26px; line-height: 1.1; font-weight: 900; font-style: italic; }
+.mini { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mini b { font-size: 64px; line-height: 1; font-weight: 900; font-style: italic; color: var(--dew-400); }
+.mini span { font-size: 18px; font-weight: 800; font-style: italic; text-transform: uppercase; }
+.fine { color: var(--ink-3); font-size: 12px; line-height: 1.5; display: grid; gap: 6px; padding: 0 4px; }
+.fine a { color: var(--ink-2); text-underline-offset: 3px; }
+
+/* steps */
+.step { display: flex; flex-direction: column; gap: 10px; padding: 22px 20px 24px; }
+.step::before {
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 56px rgba(184, 239, 22, .45); opacity: var(--heat, 0); transition: opacity .2s;
+}
+.badge { width: 60px; height: 60px; display: grid; place-items: center; border-radius: 18px; background: var(--s2); border: 1px solid var(--ring); color: var(--dew-400); font-size: 32px; }
+.step h1 { font-size: 26px; line-height: 1.15; font-weight: 900; font-style: italic; letter-spacing: -.01em; }
+.readout { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin-top: 8px; }
+.big { font-size: 96px; line-height: 1; font-weight: 900; font-style: italic; color: var(--dew-400); text-shadow: 0 0 28px rgba(184, 239, 22, .45); }
+.of { font-size: 22px; font-weight: 800; color: var(--ink-3); }
+.note { min-height: 2.9em; text-align: center; font-size: 18px; font-style: italic; }
+.slider {
+  --p: .5; -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 44px; margin: 14px 0 0;
+  background: transparent; cursor: pointer;
+}
+.slider::-webkit-slider-runnable-track {
+  height: 16px; border-radius: 8px;
+  background: linear-gradient(90deg, var(--dew-500), var(--dew-300)) 0 0 / calc(22px + (100% - 44px) * var(--p)) 100% no-repeat, var(--track);
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 44px; height: 44px; margin-top: -14px; border-radius: 50%;
+  background: var(--dew-400); border: 5px solid var(--page); box-shadow: 0 0 0 2px var(--dew-300), 0 0 22px rgba(184, 239, 22, .7);
+}
+.slider::-moz-range-track { height: 16px; border-radius: 8px; background: var(--track); }
+.slider::-moz-range-progress { height: 16px; border-radius: 8px; background: linear-gradient(90deg, var(--dew-500), var(--dew-300)); }
+.slider::-moz-range-thumb { width: 34px; height: 34px; border-radius: 50%; background: var(--dew-400); border: 5px solid var(--page); box-shadow: 0 0 0 2px var(--dew-300), 0 0 22px rgba(184, 239, 22, .7); }
+.slider:focus-visible { outline: none; }
+.slider:focus-visible::-webkit-slider-thumb { outline: 3px solid var(--dew-200); outline-offset: 3px; }
+.slider:focus-visible::-moz-range-thumb { outline: 3px solid var(--dew-200); outline-offset: 3px; }
+.ticks { display: flex; justify-content: space-between; align-items: flex-start; padding: 4px 22px 0; }
+.ticks i { width: 2px; height: 8px; border-radius: 1px; background: var(--axis); }
+.ticks i:nth-child(5n + 1) { height: 14px; background: var(--ink-3); }
+.ends { display: flex; justify-content: space-between; margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.counter { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 6px; }
+.counter .big { min-width: 2.2ch; text-align: center; }
+.round {
+  flex: none; width: 68px; height: 68px; border-radius: 50%; border: 0; cursor: pointer; touch-action: manipulation;
+  font: 900 36px/1 var(--font); color: var(--on-dew); background: linear-gradient(180deg, var(--dew-300), var(--dew-500));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .22) inset, 0 6px 18px -4px rgba(184, 239, 22, .55);
+}
+.round.minus { color: var(--ink); background: var(--s2); box-shadow: 0 0 0 1.5px var(--ring) inset; }
+.round:active { transform: scale(.94); }
+.round:disabled { opacity: .35; cursor: default; }
+.cans { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 232px; min-height: 84px; margin: 4px auto 0; }
+.cans svg { width: 24px; height: 40px; color: var(--track); transition: color .15s, transform .15s; }
+.cans svg.on { color: var(--dew-400); transform: translateY(-3px); }
+
+/* calc */
+.calc { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 24px 20px; }
+.calc-can { width: 150px; }
+.calc h1 { font-size: 24px; font-weight: 900; font-style: italic; text-transform: uppercase; }
+.lines { list-style: none; padding: 0; display: grid; gap: 8px; color: var(--ink-2); min-height: 6.4em; }
+.lines li { opacity: 0; animation: line .4s ease forwards; }
+
+/* result */
+.hero { overflow: hidden; }
+.hero-row { display: grid; grid-template-columns: minmax(80px, 36%) 1fr; gap: 14px; align-items: center; margin-top: 8px; }
+.can-gauge { display: block; width: 100%; height: auto; }
+.cap { margin-top: 2px; text-align: center; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.figure { font-size: clamp(64px, 19vw, 112px); line-height: .92; font-weight: 900; font-style: italic; color: var(--dew-400); text-shadow: 0 0 30px rgba(184, 239, 22, .5); }
+.figure .of { display: block; margin-top: 4px; font-size: 18px; font-style: normal; text-shadow: none; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; background: rgba(255, 255, 255, .08); color: var(--ink-2); }
+.tag.pb { background: var(--hot); color: var(--on-hot); }
+.tag.up { background: rgba(184, 239, 22, .16); color: var(--ink); }
+.hype { margin: 16px 0 4px; font-size: clamp(28px, 8.4vw, 40px); line-height: 1; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: -.01em; }
+.cheer { color: var(--ink-2); font-size: 17px; font-style: italic; }
+.chart-note { padding: 14px 16px; border-radius: 14px; background: #030a05; border: 1px solid var(--grid); border-left: 3px solid var(--dew-500); font: 13px/1.6 var(--mono); color: var(--ink-2); }
+.chart-note b { color: var(--ink); font-weight: 700; }
+.meters { list-style: none; padding: 0; display: grid; gap: 16px; }
+.m-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.m-label { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.m-label .ico { font-size: 20px; color: var(--dew-400); align-self: center; }
+.m-val { font-weight: 800; font-variant-numeric: tabular-nums; }
+.m-bar { height: 12px; border-radius: 6px; background: var(--track); overflow: hidden; }
+.m-bar i { display: block; width: 0; height: 100%; border-radius: 0 5px 5px 0; background: var(--dew-400); transition: width .8s cubic-bezier(.2, .8, .2, 1); }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tile { min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 12px 12px 14px; border-radius: 16px; background: var(--s1); border: 1px solid var(--ring); }
+.t-label { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.t-val { font-size: 30px; line-height: 1.05; font-weight: 800; }
+.t-val small { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.t-sub { font-size: 12px; color: var(--ink-3); }
+details.how summary { cursor: pointer; font-weight: 700; color: var(--ink-2); min-height: 44px; display: flex; align-items: center; list-style: none; }
+details.how summary::-webkit-details-marker { display: none; }
+details.how summary::after { content: "+"; margin-left: auto; font-size: 22px; font-weight: 900; color: var(--dew-400); }
+details.how[open] summary::after { content: "\2212"; }
+details.how p { margin: 4px 0 10px; font-size: 14px; color: var(--ink-2); }
+.share { display: flex; flex-direction: column; gap: 14px; }
+#card { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 16px; border: 1px solid var(--ring); background: var(--s1); }
+.chips-row { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips-row legend { padding: 0; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.tog { position: relative; }
+.tog input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.tog span { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--ring); font-size: 14px; font-weight: 700; color: var(--ink-3); }
+.tog span::before { content: "+"; font-weight: 900; }
+.tog input:checked + span { background: rgba(184, 239, 22, .16); border-color: var(--dew-400); color: var(--ink); }
+.tog input:checked + span::before { content: "\2713"; }
+.tog input:focus-visible + span { outline: 3px solid var(--dew-200); outline-offset: 2px; }
+
+/* history */
+.seg { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--s1); border: 1px solid var(--ring); }
+.seg button { flex: 1; min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-2); font: 700 14px var(--font); cursor: pointer; touch-action: manipulation; }
+.seg button[aria-pressed="true"] { background: var(--dew-400); color: var(--on-dew); }
+.chart { padding: 14px 12px 10px; }
+.chart figcaption { padding: 0 6px 8px; }
+.chart figcaption .hint { font-size: 13px; }
+.trend { position: relative; touch-action: pan-y; border-radius: 10px; }
+.trend svg { display: block; max-width: 100%; }
+.tip { position: absolute; top: 0; z-index: 3; min-width: 124px; padding: 6px 12px 8px; border-radius: 12px; pointer-events: none; background: var(--s2); border: 1px solid var(--ring); box-shadow: 0 8px 24px rgba(0, 0, 0, .5); }
+.tip[hidden] { display: none; }
+.tip .v { font-size: 20px; line-height: 1.25; font-weight: 800; }
+.tip .k { display: inline-block; width: 12px; height: 3px; margin-right: 8px; border-radius: 2px; vertical-align: middle; background: var(--dew-400); }
+.tip .l { font-size: 12px; color: var(--ink-2); }
+.empty { padding: 24px 8px; text-align: center; color: var(--ink-2); font-style: italic; }
+.log { width: 100%; border-collapse: collapse; font-size: 14px; }
+.log th { padding: 6px; text-align: left; font-size: 12px; font-weight: 700; color: var(--ink-3); border-bottom: 1px solid var(--grid); }
+.log td { padding: 10px 6px; vertical-align: top; border-bottom: 1px solid var(--grid); }
+.log .sc { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.log .sub { display: block; font-size: 12px; color: var(--ink-3); }
+.how-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.how-table th, .how-table td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--grid); }
+.how-table th:first-child, .how-table td:first-child { text-align: left; }
+.how-table th { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+
+#toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 60; max-width: calc(100% - 32px);
+  padding: 12px 18px; border-radius: 14px; background: var(--s2); border: 1px solid var(--ring); color: var(--ink);
+  font-weight: 700; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, .55);
+  opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: opacity .2s, transform .2s;
+}
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+@keyframes rise { from { transform: translate3d(0, 0, 0); opacity: 0; } 10% { opacity: .9; } to { transform: translate3d(var(--sway, 0), -110vh, 0); opacity: 0; } }
+@keyframes hop { from { opacity: 0; transform: translateX(18px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes line { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes bob { 50% { transform: translateY(-4px); } }
+
+@media (max-width: 340px) {
+  .big { font-size: 72px; }
+  .counter { gap: 8px; }
+  .round { width: 56px; height: 56px; font-size: 30px; }
+  .step h1 { font-size: 23px; }
+  .tiles { gap: 6px; }
+  .t-val { font-size: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #bubbles { display: none; }
+  #view.hop > * { animation: none; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+}
+@media (forced-colors: active) {
+  .m-bar, .slider::-webkit-slider-runnable-track { border: 1px solid CanvasText; }
+  .m-bar i { background: Highlight; }
+  .btn, .round { border: 2px solid ButtonText; }
+}
+</style>
+</head>
+<body>
+<div id="bubbles" aria-hidden="true"></div>
+<main class="app"><div id="view"></div></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<noscript><p style="padding:24px">The Dew does not run itself. Turn on JavaScript.</p></noscript>
+<script>
+/* Dew-pression Index
+   Tweak here: NAME, FACTORS (weights and copy) and TIERS (copy).
+   Everything stays on the phone. The page makes no network calls. */
+(() => {
+'use strict';
+
+const NAME = 'Dr. Dew';
+const KEY = 'dewpression.v1';
+const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+
+/* ---------- Shapes (shared by the page and the share card) ---------- */
+const ICON = {
+  money: 'M3 7l6 6 4-4 8 8M21 11v6h-6',
+  shalom: 'M3 11l9-8 9 8M5 9.5V21h14V9.5M10 21v-6h4v6',
+  students: 'M2 9l10-5 10 5-10 5zM6 11.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5M22 9v6',
+  er: 'M9 3h6v6h6v6h-6v6H9v-6H3V9h6z',
+  dews: 'M12 3s-6 6.5-6 11a6 6 0 0 0 12 0c0-4.5-6-11-6-11z',
+  back: 'M19 12H5M11 6l-6 6 6 6',
+  chart: 'M3 3v18h18M7 15l4-5 3 3 5-7',
+  sound: 'M4 9v6h4l5 4V5L8 9H4zM16.5 9a4 4 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11',
+  mute: 'M4 9v6h4l5 4V5L8 9H4zM17 9l5 6M22 9l-5 6',
+};
+const SAD = {
+  drop: 'M50 4C50 4 14 46 14 76a36 36 0 0 0 72 0C86 46 50 4 50 4z',
+  shine: 'M27 62c2-9 7-17 14-24',
+  brows: 'M28 72L43 66M72 72L57 66',
+  frown: 'M36 100q14-13 28 0',
+};
+const CAN = { x: 34, y: 30, w: 92, h: 200, r: 18 };
+
+/* ---------- Copy ---------- */
+const RATING_BOUNDS = [0, 1, 3, 5, 7, 9, 10];
+const FACTORS = [
+  { id: 'money', label: 'Money', title: 'Financial damage', weight: 20, lo: 'Fine', hi: 'Code Blue',
+    q: w => `How bad was ${w} financially?`, bounds: RATING_BOUNDS,
+    notes: ['Wallet thriving. Weird.', 'Small ouch. Coffee money.', 'A bill arrived. It brought friends.',
+      'Checked the account. Closed the app.', 'Money left. Did not say goodbye.', 'Code Blue: wallet.',
+      'Wallet pronounced. Family notified.'] },
+  { id: 'shalom', label: 'Shalom bayis', title: 'Shalom bayis', weight: 20, lo: 'Serene', hi: 'Cold War',
+    sub: 'Peace at home.',
+    q: w => `How rough was shalom bayis ${w}?`, bounds: RATING_BOUNDS,
+    notes: ['Peace in the home. Suspicious.', 'Light turbulence. Dishwasher-level.', 'Tense. Something was loaded wrong.',
+      'Very polite. Too polite.', 'Peace talks. Mediator requested.', 'Diplomatic channels suspended.',
+      'Volunteering for extra shifts.'] },
+  { id: 'students', label: 'Students', title: 'Medical students', weight: 15, lo: 'Invisible', hi: 'Everywhere',
+    q: w => `How annoying were the medical students ${w}?`, bounds: RATING_BOUNDS,
+    notes: ['Who? We had students?', 'Quiet. Staring. Learning.', 'Questions. Some were even good.',
+      'A 20-minute presentation. For an ankle sprain.', '“Quick question.” Nine times.',
+      'Hovering. Clipboard held like a shield.', 'A whole herd. All eager. All following.'] },
+  { id: 'er', label: 'ER', title: 'ER difficulty', weight: 25, lo: 'Chill', hi: 'Carnage',
+    q: w => `How hard was the ER ${w}?`, bounds: RATING_BOUNDS,
+    notes: ['Dead quiet. Nobody say the Q-word.', 'A few sniffles. Barely a shift.', 'Normal chaos. Standard issue.',
+      'Full board. Hallway beds.', 'Boarders, traumas, and a “quick favor.”', 'Every bed. Every chart. Every family.',
+      'Biblical. The waiting room has a waiting room.'] },
+  { id: 'dews', label: 'Dews', title: 'Mountain Dews', weight: 20, count: true, max: 15,
+    sub: 'Cans, bottles, fountain. Count them all.',
+    q: w => `How many Mountain Dews did it take to get through ${w}?`, bounds: [0, 1, 3, 5, 7, 9, 11],
+    notes: ['Zero. Suspicious hydration.', 'A warm-up.', 'Standard issue.', 'Fully fueled.',
+      'Carbonated beyond reason.', 'The Dew is now structural.', 'Scientists would like a word.'] },
+];
+const TIERS = [
+  { min: 0, head: 'Suspiciously okay', cheer: `Suspicious. Who are you, and where is ${NAME}?`,
+    note: 'Mood within normal limits. Differential: a good night of sleep. A second opinion is advised.', prog: 'Alarmingly good.' },
+  { min: 10, head: 'Barely bothered', cheer: 'A weak showing. The Dew believes in you.',
+    note: 'Mild contentment detected. Likely transient.', prog: 'Fair. Likely to recover.' },
+  { min: 25, head: 'Warming up', cheer: 'Not bad. Room to grow.',
+    note: 'Subclinical gloom. The foundation is there.', prog: 'Promising.' },
+  { min: 40, head: 'Solid gloom', cheer: 'Now we’re talking.',
+    note: 'Respectable misery. Patient is functional, bitter, and caffeinated.', prog: 'Stable. Bitter.' },
+  { min: 55, head: 'Certified Dew-pressed', cheer: 'Be proud.',
+    note: 'Classic presentation. Elevated Dew intake. Elevated eye-roll rate.', prog: 'Guarded. Proud.' },
+  { min: 70, head: 'Premium misery', cheer: 'Top shelf. Chef’s kiss.',
+    note: 'Well-developed gloom. Patient states he is fine. The chart disagrees.', prog: 'Guarded. Very proud.' },
+  { min: 85, head: 'Elite doom', cheer: 'Legendary. Screenshot this.',
+    note: 'Exceptional presentation. Worthy of a conference poster.', prog: 'Poor, in all the right ways.' },
+  { min: 95, head: 'Maximum Dew-pression', cheer: 'Hall of Fame. Pour one out. (It’s a Dew.)',
+    note: 'Peak performance. No further decline is possible. A plaque is on order.', prog: 'Peak. Frame this chart.' },
+];
+const TAGS = [
+  'The sadder the score, the better the day.', 'Rank it. Own it. Dew it.', 'Misery loves a morning routine.',
+  'Fueled by Dew. Powered by gloom.', 'Be proud. Be bleak. Be Dew-pressed.', 'Higher is worse. Worse is better.',
+];
+const CALC_LINES = [
+  'Calibrating the Dew.', 'Consulting the ER.', 'Interviewing the medical students. They declined to comment.', 'Peer review: none.',
+];
+
+/* ---------- Helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (n, lo, hi) => Math.min(Math.max(n, lo), hi);
+const pad = n => String(n).padStart(2, '0');
+const dkey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const dobj = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (k, n) => { const d = dobj(k); d.setDate(d.getDate() + n); return dkey(d); };
+const fmtDate = (k, o) => dobj(k).toLocaleDateString('en-US', o);
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const when = () => (new Date().getHours() < 12 ? 'yesterday' : 'today');
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch { /* not supported */ } };
+
+/* ---------- Storage ---------- */
+const db = { entries: {}, hide: new Set(), sound: false, canSave: true };
+
+function cleanEntry(k, e) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !e || typeof e.v !== 'object' || !e.v) return null;
+  const v = {};
+  for (const f of FACTORS) {
+    const n = Math.round(Number(e.v[f.id]));
+    if (!Number.isFinite(n)) return null;
+    v[f.id] = clamp(n, 0, f.count ? f.max : 10);
+  }
+  return { date: k, v, score: scoreOf(v) };
+}
+
+function load() {
+  let raw = null;
+  try { raw = localStorage.getItem(KEY); } catch { db.canSave = false; return; }
+  if (!raw) return;
+  try {
+    const p = JSON.parse(raw);
+    db.sound = !!p.sound;
+    db.hide = new Set((p.hide || []).filter(id => FACTORS.some(f => f.id === id)));
+    for (const [k, e] of Object.entries(p.entries || {})) {
+      const c = cleanEntry(k, e);
+      if (c) db.entries[k] = c;
+    }
+  } catch { /* corrupt data: start fresh */ }
+}
+
+function persist() {
+  try {
+    const entries = {};
+    for (const e of Object.values(db.entries)) entries[e.date] = { v: e.v };
+    localStorage.setItem(KEY, JSON.stringify({ sound: db.sound, hide: [...db.hide], entries }));
+    return true;
+  } catch { return false; }
+}
+
+/* ---------- Scoring and stats ---------- */
+const rate = n => clamp(n, 0, 10) / 10;
+const scoreOf = v => Math.round(FACTORS.reduce((s, f) => s + f.weight * rate(v[f.id]), 0));
+const tierOf = s => TIERS.reduce((t, x) => (s >= x.min ? x : t), TIERS[0]);
+const noteOf = (f, n) => f.notes[f.bounds.filter(b => n >= b).length - 1];
+const valText = (f, n) => (f.count ? plural(n, 'Dew', 'Dews') : `${n}/10`);
+const sorted = () => Object.values(db.entries).sort((a, b) => (a.date < b.date ? -1 : 1));
+
+function streak() {
+  let k = dkey();
+  if (!db.entries[k]) k = addDays(k, -1);
+  let n = 0;
+  while (db.entries[k]) { n++; k = addDays(k, -1); }
+  return n;
+}
+
+function stats() {
+  const list = sorted(), today = dkey();
+  const best = list.reduce((b, e) => (!b || e.score > b.score ? e : b), null);
+  const week = list.filter(e => e.date >= addDays(today, -6));
+  const avg7 = week.length ? Math.round(week.reduce((s, e) => s + e.score, 0) / week.length) : null;
+  return { list, best, avg7, streak: streak() };
+}
+
+function context(e) {
+  const prior = sorted().filter(x => x.date < e.date);
+  const prev = prior[prior.length - 1] || null;
+  const priorBest = prior.reduce((m, x) => Math.max(m, x.score), -1);
+  return { first: !prior.length, delta: prev ? e.score - prev.score : null, isPB: prior.length > 0 && e.score > priorBest };
+}
+
+function chiefComplaint(v) {
+  const top = FACTORS.map(f => ({ f, pts: f.weight * rate(v[f.id]) })).sort((a, b) => b.pts - a.pts)[0];
+  return top.pts ? `${top.f.title} (${valText(top.f, v[top.f.id])})` : 'None. Concerning.';
+}
+
+/* ---------- State ---------- */
+const S = { screen: 'home', step: 0, draft: null, today: null, range: 30, raf: 0, blob: null };
+
+/* ---------- Markup pieces ---------- */
+const icon = (id, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON[id]}"/></svg>`;
+
+const sprite = () => `
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="g-dew" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e4ff8a"/><stop offset=".55" stop-color="#b8ef16"/><stop offset="1" stop-color="#6b9a0a"/>
+    </linearGradient>
+    <linearGradient id="g-liq" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cdf94a"/><stop offset="1" stop-color="#6b9a0a"/>
+    </linearGradient>
+    <clipPath id="clip-can"><rect x="${CAN.x}" y="${CAN.y}" width="${CAN.w}" height="${CAN.h}" rx="${CAN.r}"/></clipPath>
+    <symbol id="i-sad" viewBox="0 0 100 120">
+      <path d="${SAD.drop}" fill="url(#g-dew)"/>
+      <path d="${SAD.shine}" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="37" cy="80" r="5.5" fill="#06130a"/><circle cx="63" cy="80" r="5.5" fill="#06130a"/>
+      <path d="${SAD.brows}" fill="none" stroke="#06130a" stroke-width="4" stroke-linecap="round"/>
+      <path d="${SAD.frown}" fill="none" stroke="#06130a" stroke-width="4.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-can" viewBox="0 0 24 40">
+      <rect x="4" y="8" width="16" height="30" rx="4" fill="currentColor"/>
+      <rect x="6.5" y="3.5" width="11" height="6" rx="2.5" fill="currentColor"/>
+      <rect x="9.5" y="1" width="5" height="3.5" rx="1.5" fill="currentColor"/>
+      <rect x="7" y="14" width="3" height="20" rx="1.5" fill="#fff" fill-opacity=".22"/>
+    </symbol>
+  </defs>
+</svg>`;
+
+const logo = () => '<svg class="logo" viewBox="0 0 100 120" aria-hidden="true"><use href="#i-sad"/></svg>';
+
+function canSVG(pct = 0) {
+  const top = CAN.y + CAN.h * (1 - pct / 100), ticks = [0, 25, 50, 75, 100].map(p => {
+    const y = CAN.y + CAN.h * (1 - p / 100);
+    return `<line x1="26" x2="32" y1="${y}" y2="${y}" stroke="var(--ink-3)" stroke-width="1.5"/>` +
+      (p % 50 === 0 ? `<text x="21" y="${y + 4}" text-anchor="end" fill="var(--ink-3)" font-size="11" font-weight="700">${p}</text>` : '');
+  }).join('');
+  return `<svg class="can-gauge" viewBox="0 0 150 250" aria-hidden="true">
+    <g clip-path="url(#clip-can)">
+      <rect x="${CAN.x}" y="${CAN.y}" width="${CAN.w}" height="${CAN.h}" fill="var(--track)"/>
+      <rect class="liq" x="${CAN.x}" y="${top}" width="${CAN.w}" height="${CAN.h * pct / 100 + 2}" fill="url(#g-liq)"/>
+      <rect class="foam" x="${CAN.x}" y="${top}" width="${CAN.w}" height="5" fill="var(--dew-200)" fill-opacity=".55" style="display:${pct > 0.5 ? '' : 'none'}"/>
+      <rect x="44" y="42" width="8" height="176" rx="4" fill="#fff" fill-opacity=".12"/>
+    </g>
+    <rect x="${CAN.x}" y="${CAN.y}" width="${CAN.w}" height="${CAN.h}" rx="${CAN.r}" fill="none" stroke="var(--dew-500)" stroke-opacity=".6" stroke-width="2"/>
+    <rect x="42" y="12" width="76" height="24" rx="9" fill="var(--s2)" stroke="var(--ring)"/>
+    <rect x="68" y="6" width="24" height="8" rx="4" fill="var(--s2)" stroke="var(--ring)"/>
+    ${ticks}
+  </svg>`;
+}
+
+function setCan(svg, pct) {
+  const liq = $('.liq', svg), foam = $('.foam', svg);
+  if (!liq) return;
+  const top = CAN.y + CAN.h * (1 - pct / 100);
+  liq.setAttribute('y', top); liq.setAttribute('height', CAN.h * pct / 100 + 2);
+  foam.setAttribute('y', top); foam.style.display = pct > 0.5 ? '' : 'none';
+}
+
+const cansRow = n => Array.from({ length: 15 }, (_, i) =>
+  `<svg class="${i < n ? 'on' : ''}" viewBox="0 0 24 40" aria-hidden="true"><use href="#i-can"/></svg>`).join('');
+
+const tile = (label, value, sub) =>
+  `<div class="tile"><span class="t-label">${label}</span><span class="t-val">${value}</span><span class="t-sub">${sub}</span></div>`;
+
+const meterRows = e => FACTORS.map(f => `<li><div class="m-head"><span class="m-label">${icon(f.id)}${f.label}</span><span class="m-val">${valText(f, e.v[f.id])}</span></div><div class="m-bar"><i data-w="${rate(e.v[f.id]) * 100}"></i></div></li>`).join('');
+
+const howRows = e => FACTORS.map(f => {
+  const pts = Math.round(f.weight * rate(e.v[f.id]) * 10) / 10;
+  return `<tr><td>${f.label}</td><td>${f.count ? e.v[f.id] : e.v[f.id] + '/10'}</td><td>${f.weight}%</td><td>+${pts}</td></tr>`;
+}).join('');
+
+const rel = k => (k === dkey() ? 'Today' : k === addDays(dkey(), -1) ? 'Yesterday' : fmtDate(k, { month: 'short', day: 'numeric' }));
+const nb = s => s.replace(/\S+-\S+/g, '<span class="nb">$&</span>');
+
+/* ---------- Views ---------- */
+function viewHome() {
+  const h = new Date().getHours(), hi = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const st = stats(), last = st.list[st.list.length - 1], e = db.entries[dkey()];
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const cta = e
+    ? `<p class="eyebrow">Today’s score</p>
+       <div class="mini"><b>${e.score}</b><span>${nb(tierOf(e.score).head)}</span></div>
+       <button class="btn block" data-act="view">View result</button>
+       <button class="btn ghost block" data-act="retake">Retake</button>`
+    : `<p class="eyebrow">Morning assessment</p>
+       <h2>Five questions. Zero comfort.</h2>
+       <p class="hint">Rank each one from 0 to 10. Higher is worse. Worse scores better.</p>
+       <button class="btn block" data-act="start">Start</button>`;
+  return { html: `
+    <div class="topbar"><span class="title" aria-hidden="true"></span>
+      <button class="icon-btn" data-act="sound" aria-label="Can-crack sound" aria-pressed="${db.sound}">${icon(db.sound ? 'sound' : 'mute')}</button>
+    </div>
+    <header class="brand">${logo()}<h1 class="wordmark" tabindex="-1"><b>Dew</b>-pression<span>Index</span></h1></header>
+    <div><p class="greet">${hi}, ${NAME}.</p><p class="tagline">${TAGS[Math.floor(Date.now() / 864e5) % TAGS.length]}</p></div>
+    <section class="card cta">${cta}</section>
+    <div class="tiles">
+      ${tile('Streak', `${st.streak}<small> ${st.streak === 1 ? 'day' : 'days'}</small>`, st.streak ? 'In a row' : 'Start one')}
+      ${tile('Best score', st.best ? st.best.score : '–', st.best ? rel(st.best.date) : 'No data yet')}
+      ${tile('Last score', last ? last.score : '–', last ? rel(last.date) : 'No data yet')}
+    </div>
+    <button class="btn ghost block" data-act="history">${icon('chart')} Gloom log</button>
+    <footer class="fine">
+      ${db.canSave ? '' : '<p><b>This browser cannot save history.</b> Each result will last until you close the page.</p>'}
+      ${standalone ? '' : '<p>Tip: add this page to your home screen. iPhone: Share, then Add to Home Screen. Android: menu, then Add to Home screen.</p>'}
+      <p>Entertainment only. Not medical advice. If the joke stops being funny, talk to someone. In the US, call or text <a href="tel:988">988</a>.</p>
+      <p>Unofficial fan joke. Not affiliated with PepsiCo or Mountain Dew. Everything stays on this phone. No accounts. No tracking.</p>
+    </footer>` };
+}
+
+function viewStep() {
+  const i = S.step, f = FACTORS[i], n = S.draft[f.id];
+  const intro = i === 0 ? '<p class="hint">Rank each one from 0 to 10. Higher is worse. Worse scores better.</p>' : '';
+  const input = f.count
+    ? `<div class="counter">
+         <button class="round minus" data-act="dec" aria-label="One fewer Dew" ${n <= 0 ? 'disabled' : ''}>&minus;</button>
+         <output id="val" class="big" aria-labelledby="q" aria-live="polite">${n}</output>
+         <button class="round" data-act="inc" aria-label="One more Dew" ${n >= f.max ? 'disabled' : ''}>+</button>
+       </div>
+       <p id="note" class="note">${noteOf(f, n)}</p>
+       <div class="cans" aria-hidden="true">${cansRow(n)}</div>
+       <p id="over" class="hint" ${n > 10 ? '' : 'hidden'}>The score counts up to 10 Dews. The rest are for pride.</p>`
+    : `<div class="readout"><output id="val" class="big">${n}</output><span class="of">/10</span></div>
+       <p id="note" class="note">${noteOf(f, n)}</p>
+       <input id="rate" class="slider" type="range" min="0" max="10" step="1" value="${n}" aria-labelledby="q" aria-valuetext="${n} out of 10. ${noteOf(f, n)}" style="--p:${n / 10}">
+       <div class="ticks" aria-hidden="true">${'<i></i>'.repeat(11)}</div>
+       <div class="ends" aria-hidden="true"><span>0 · ${f.lo}</span><span>${f.hi} · 10</span></div>`;
+  return { html: `
+    <div class="topbar">
+      <button class="icon-btn" data-act="back" aria-label="Back">${icon('back')}</button>
+      <div class="steps" role="img" aria-label="Question ${i + 1} of ${FACTORS.length}">${FACTORS.map((_, j) => `<i class="${j < i ? 'done' : j === i ? 'now' : ''}"></i>`).join('')}</div>
+      <span class="count">${i + 1}/${FACTORS.length}</span>
+    </div>
+    <section class="card step" style="--heat:${Math.min(n, 10) / 10}">
+      <div class="badge">${icon(f.id)}</div>
+      <p class="eyebrow">${f.label}</p>
+      <h1 id="q" tabindex="-1">${f.q(when())}</h1>
+      ${intro}${f.sub ? `<p class="hint">${f.sub}</p>` : ''}
+      ${input}
+    </section>
+    <div class="stick"><button class="btn block" data-act="next">${i < FACTORS.length - 1 ? 'Next' : 'Get my score'}</button></div>` };
+}
+
+function viewCalc() {
+  return {
+    html: `
+    <section class="card calc" aria-live="polite">
+      <div class="calc-can">${canSVG(0)}</div>
+      <h1 tabindex="-1">Calculating</h1>
+      <ul class="lines">${CALC_LINES.map((t, i) => `<li style="animation-delay:${i * 0.6}s">${t}</li>`).join('')}</ul>
+      <button class="btn ghost" data-act="skip">Skip</button>
+    </section>`,
+    after() {
+      const svg = $('.calc-can svg'), dur = reduced() ? 500 : 2600, t0 = performance.now();
+      const step = t => {
+        const k = Math.min(1, (t - t0) / dur);
+        setCan(svg, 100 * (k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2));
+        if (k < 1) S.raf = requestAnimationFrame(step); else finish();
+      };
+      S.raf = requestAnimationFrame(step);
+    },
+  };
+}
+
+function viewResult() {
+  const e = S.today, tier = tierOf(e.score), cx = context(e), st = stats();
+  const chips = [
+    cx.first ? '<span class="tag">Day one</span>' : '',
+    cx.isPB ? '<span class="tag pb">New personal best</span>' : '',
+    cx.delta ? `<span class="tag ${cx.delta > 0 ? 'up' : ''}">${cx.delta > 0 ? '▲' : '▼'} ${Math.abs(cx.delta)} vs. last entry</span>` : '',
+  ].join('');
+  return {
+    html: `
+    <div class="topbar">
+      <button class="icon-btn" data-act="home" aria-label="Home">${icon('back')}</button>
+      <span class="title">Morning report</span>
+      <button class="icon-btn" data-act="history" aria-label="Gloom log">${icon('chart')}</button>
+    </div>
+    <section class="card hero">
+      <p class="eyebrow">${fmtDate(e.date, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+      <div class="hero-row">
+        <div id="gauge">${canSVG(0)}<p class="cap">Dew-o-meter</p></div>
+        <div>
+          <div class="figure" aria-hidden="true"><span id="num">0</span><span class="of">out of 100</span></div>
+          <p class="sr">Score: ${e.score} out of 100.</p>
+          <div class="chips">${chips}</div>
+        </div>
+      </div>
+      <h1 class="hype" tabindex="-1">${nb(tier.head)}</h1>
+      <p class="cheer">${tier.cheer}</p>
+    </section>
+    <section class="chart-note" aria-label="Chart note">
+      <b>Instrument:</b> PHQ-Dew-5 (validated by no one)<br>
+      <b>Chief complaint:</b> ${chiefComplaint(e.v)}<br>
+      <b>Dew dosage:</b> ${plural(e.v.dews, 'unit', 'units')}<br>
+      <b>Assessment:</b> ${tier.note}<br>
+      <b>Prognosis:</b> ${tier.prog}
+    </section>
+    <section class="card">
+      <h2 class="h3">Damage report</h2>
+      <ul class="meters">${meterRows(e)}</ul>
+      <details class="how">
+        <summary>How the score works</summary>
+        <p>Each rating counts up to its weight. The weights add up to 100. The Dew count tops out at 10.</p>
+        <table class="how-table">
+          <thead><tr><th>Factor</th><th>Rating</th><th>Weight</th><th>Points</th></tr></thead>
+          <tbody>${howRows(e)}<tr><td><b>Total</b></td><td></td><td>100%</td><td><b>${e.score}</b></td></tr></tbody>
+        </table>
+      </details>
+    </section>
+    <div class="tiles">
+      ${tile('Streak', `${st.streak}<small> ${st.streak === 1 ? 'day' : 'days'}</small>`, 'In a row')}
+      ${tile('Best score', st.best.score, rel(st.best.date))}
+      ${tile('7-day average', st.avg7, plural(st.list.filter(x => x.date >= addDays(dkey(), -6)).length, 'entry', 'entries'))}
+    </div>
+    <section class="card share">
+      <h2 class="h3">Share the gloom</h2>
+      <canvas id="card" width="1080" height="1350" role="img" aria-label="Preview of the share card"></canvas>
+      <fieldset class="chips-row">
+        <legend>Show on the card</legend>
+        ${FACTORS.map(f => `<label class="tog"><input type="checkbox" data-hide="${f.id}" ${db.hide.has(f.id) ? '' : 'checked'}><span>${f.label}</span></label>`).join('')}
+      </fieldset>
+      <div class="btn-row">
+        <button class="btn wide" data-act="share">Share</button>
+        <button class="btn ghost" data-act="save">Save image</button>
+        <button class="btn ghost" data-act="copy">Copy text</button>
+      </div>
+    </section>
+    <div class="btn-row">
+      <button class="btn ghost" data-act="retake">Retake</button>
+      <button class="btn ghost" data-act="history">${icon('chart')} Gloom log</button>
+    </div>
+    <footer class="fine">
+      ${db.canSave ? '' : '<p><b>This browser cannot save history.</b> This result will last until you close the page.</p>'}
+      <p>Entertainment only. Not medical advice. Not affiliated with PepsiCo or Mountain Dew.</p>
+    </footer>`,
+    after() {
+      countUp(e.score);
+      requestAnimationFrame(() => $$('.m-bar i').forEach(i => { i.style.width = `${i.dataset.w}%`; }));
+      drawCard();
+      if (cx.isPB || e.score >= 85) setTimeout(confetti, 700);
+    },
+  };
+}
+
+function viewHistory() {
+  const list = inRange(), best = list.reduce((b, e) => (!b || e.score > b.score ? e : b), null);
+  const avg = list.length ? Math.round(list.reduce((s, e) => s + e.score, 0) / list.length) : null;
+  const label = { 7: 'last 7 days', 30: 'last 30 days', 0: 'all time' }[S.range];
+  const rows = list.slice().reverse().map(e => `<tr>
+    <td>${fmtDate(e.date, { month: 'short', day: 'numeric' })}<span class="sub">${fmtDate(e.date, { weekday: 'long' })}</span></td>
+    <td class="sc">${e.score}</td>
+    <td>${nb(tierOf(e.score).head)}<span class="sub">${FACTORS.map(f => `${f.label} ${e.v[f.id]}`).join(' · ')}</span></td></tr>`).join('');
+  return {
+    html: `
+    <div class="topbar">
+      <button class="icon-btn" data-act="home" aria-label="Home">${icon('back')}</button>
+      <h1 class="title" tabindex="-1">Gloom log</h1>
+    </div>
+    <div class="seg" role="group" aria-label="Date range">
+      ${[[7, '7 days'], [30, '30 days'], [0, 'All time']].map(([d, t]) => `<button data-act="range" data-range="${d}" aria-pressed="${S.range === d}">${t}</button>`).join('')}
+    </div>
+    <div class="tiles">
+      ${tile('Entries', list.length, label)}
+      ${tile('Best score', best ? best.score : '–', best ? rel(best.date) : 'No data yet')}
+      ${tile('Average', avg ?? '–', label)}
+    </div>
+    <figure class="card chart">
+      <figcaption><h2 class="h3" style="margin-bottom:2px">Score over time</h2><p class="hint">Higher is better. Obviously.</p></figcaption>
+      <div id="trend" class="trend" tabindex="0" role="group" aria-label="Chart of score over time. Use the arrow keys to step through entries."></div>
+    </figure>
+    <section class="card">
+      <h2 class="h3">Table view</h2>
+      ${list.length
+        ? `<table class="log"><thead><tr><th scope="col">Date</th><th scope="col">Score</th><th scope="col">Rank and ratings</th></tr></thead><tbody>${rows}</tbody></table>`
+        : '<p class="empty">Nothing here yet.</p>'}
+    </section>
+    ${Object.keys(db.entries).length ? '<button class="btn danger block" data-act="wipe">Clear all history</button>' : ''}`,
+    after: renderTrend,
+  };
+}
+
+const VIEWS = { home: viewHome, step: viewStep, calc: viewCalc, result: viewResult, history: viewHistory };
+
+function render(animate = true) {
+  cancelAnimationFrame(S.raf);
+  const v = VIEWS[S.screen](), root = $('#view');
+  root.innerHTML = v.html;
+  root.classList.remove('hop');
+  if (animate) { void root.offsetWidth; root.classList.add('hop'); }
+  const h = $('h1', root);
+  if (animate && h) h.focus({ preventScroll: true });
+  if (v.after) v.after();
+}
+
+/* ---------- Trend chart ---------- */
+const T = { pts: [], i: null };
+
+function inRange() {
+  const list = sorted();
+  return S.range ? list.filter(e => e.date >= addDays(dkey(), -(S.range - 1))) : list;
+}
+
+function renderTrend() {
+  const host = $('#trend');
+  if (!host) return;
+  const list = inRange();
+  T.pts = []; T.i = null;
+  if (!list.length) { host.innerHTML = '<p class="empty">No entries in this range yet. Misery loves a baseline.</p>'; return; }
+  const W = Math.max(260, Math.floor(host.clientWidth)), H = 210;
+  const m = { t: 28, r: 16, b: 30, l: 34 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const ts = list.map(e => dobj(e.date).getTime()), t1 = Math.max(...ts), t0 = Math.min(Math.min(...ts), t1 - 6 * 864e5);
+  const X = t => m.l + 8 + (t - t0) / (t1 - t0) * (iw - 16), Y = s => m.t + (1 - s / 100) * ih;
+  const pts = T.pts = list.map((e, i) => ({ e, x: X(ts[i]), y: Y(e.score) }));
+  const best = pts.reduce((b, p) => (p.e.score > b.e.score ? p : b), pts[0]), last = pts[pts.length - 1];
+  const f1 = n => n.toFixed(1), base = Y(0);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${f1(p.x)} ${f1(p.y)}`).join('');
+  const grid = [0, 50, 100].map(g => `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(g)}" y2="${Y(g)}" stroke="${g ? 'var(--grid)' : 'var(--axis)'}" stroke-width="1"/><text x="${m.l - 8}" y="${Y(g) + 4}" text-anchor="end" fill="var(--ink-3)" font-size="11">${g}</text>`).join('');
+  const nt = W < 340 ? 3 : 4;
+  const xt = Array.from({ length: nt }, (_, k) => {
+    const t = t0 + (t1 - t0) * k / (nt - 1);
+    return `<text x="${f1(X(t))}" y="${H - 8}" text-anchor="${k === 0 ? 'start' : k === nt - 1 ? 'end' : 'middle'}" fill="var(--ink-3)" font-size="11">${fmtDate(dkey(new Date(t + 12 * 36e5)), { month: 'short', day: 'numeric' })}</text>`;
+  }).join('');
+  const dot = (p, r) => `<circle cx="${f1(p.x)}" cy="${f1(p.y)}" r="${r + 2}" fill="var(--s1)"/><circle cx="${f1(p.x)}" cy="${f1(p.y)}" r="${r}" fill="var(--dew-400)"/>`;
+  const dots = (pts.length > 24 ? [...new Set([best, last])] : pts).map(p => dot(p, p === best ? 5 : 4)).join('');
+  const label = (p, txt, below) => {
+    const edge = p.x > W - 56 ? 'end' : p.x < m.l + 40 ? 'start' : 'middle', dx = edge === 'end' ? 6 : edge === 'start' ? -6 : 0;
+    return `<text x="${f1(p.x + dx)}" y="${f1(below ? p.y + 22 : p.y - 12)}" text-anchor="${edge}" fill="var(--ink)" stroke="var(--s1)" stroke-width="4" stroke-linejoin="round" paint-order="stroke" font-size="12" font-weight="800">${txt}</text>`;
+  };
+  const labels = best === last ? label(last, `Best ${last.e.score}`)
+    : label(best, `Best ${best.e.score}`) + label(last, `${last.e.score}`, Math.abs(best.x - last.x) < 60);
+  const summary = `Line chart of score by date. ${pts.length} ${pts.length === 1 ? 'entry' : 'entries'}. Latest ${last.e.score}. Best ${best.e.score} on ${fmtDate(best.e.date, { month: 'long', day: 'numeric' })}.`;
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(summary)}">
+      ${grid}${xt}
+      <path d="${line}L${f1(last.x)} ${f1(base)}L${f1(pts[0].x)} ${f1(base)}Z" fill="var(--dew-400)" fill-opacity=".10"/>
+      <path d="${line}" fill="none" stroke="var(--dew-400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line class="xh" y1="${m.t - 8}" y2="${f1(base)}" stroke="var(--ink-3)" stroke-width="1" visibility="hidden"/>
+      ${dots}${labels}
+      <g class="act" visibility="hidden"><circle r="8" fill="var(--s1)"/><circle r="6" fill="var(--dew-400)"/></g>
+    </svg>
+    <div class="tip" hidden><div class="v"><i class="k"></i><span></span></div><div class="l"></div><div class="l"></div></div>`;
+  if (!host.dataset.bound) { host.dataset.bound = '1'; bindTrend(host); }
+}
+
+function activate(i) {
+  const host = $('#trend'), svg = host && $('svg', host), tip = host && $('.tip', host);
+  if (!svg || !T.pts.length) return;
+  T.i = clamp(i, 0, T.pts.length - 1);
+  const p = T.pts[T.i], e = p.e, xh = $('.xh', svg), act = $('.act', svg);
+  xh.setAttribute('x1', p.x); xh.setAttribute('x2', p.x); xh.setAttribute('visibility', 'visible');
+  act.setAttribute('transform', `translate(${p.x} ${p.y})`); act.setAttribute('visibility', 'visible');
+  $('.v span', tip).textContent = e.score;
+  const [l1, l2] = $$('.l', tip);
+  l1.textContent = tierOf(e.score).head;
+  l2.textContent = fmtDate(e.date, { weekday: 'short', month: 'short', day: 'numeric' });
+  tip.hidden = false;
+  // Park the tooltip at the top, beside the crosshair, so a finger or the line never hides it.
+  const tw = tip.offsetWidth, hw = host.clientWidth;
+  tip.style.left = `${clamp(p.x < hw / 2 ? p.x + 12 : p.x - 12 - tw, 0, hw - tw)}px`;
+}
+
+function deactivate() {
+  const host = $('#trend');
+  if (!host) return;
+  T.i = null;
+  const tip = $('.tip', host), xh = $('.xh', host), act = $('.act', host);
+  if (tip) tip.hidden = true;
+  if (xh) xh.setAttribute('visibility', 'hidden');
+  if (act) act.setAttribute('visibility', 'hidden');
+}
+
+function bindTrend(host) {
+  const nearest = x => T.pts.reduce((bi, p, i) => (Math.abs(p.x - x) < Math.abs(T.pts[bi].x - x) ? i : bi), 0);
+  const at = ev => { if (T.pts.length) activate(nearest(ev.clientX - host.getBoundingClientRect().left)); };
+  host.addEventListener('pointermove', at);
+  host.addEventListener('pointerdown', at);
+  host.addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse') deactivate(); });
+  host.addEventListener('focus', () => { if (T.i === null && T.pts.length) activate(T.pts.length - 1); });
+  host.addEventListener('blur', deactivate);
+  host.addEventListener('keydown', ev => {
+    const last = T.pts.length - 1, cur = T.i === null ? last : T.i;
+    const next = { ArrowLeft: cur - 1, ArrowRight: cur + 1, Home: 0, End: last }[ev.key];
+    if (next !== undefined) { ev.preventDefault(); activate(next); }
+    else if (ev.key === 'Escape') deactivate();
+  });
+}
+
+/* ---------- Share card ---------- */
+const rr = (c, x, y, w, h, r) => {
+  c.beginPath(); c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+};
+
+// Shrinks the font until the text fits. Leaves c.font set to the winning size.
+function fit(c, text, max, size, font) {
+  let s = size;
+  for (; s > 18; s -= 2) { c.font = font(s); if (c.measureText(text).width <= max) break; }
+  return s;
+}
+
+function glow(c, x, y, r, color) {
+  const g = c.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = g; c.fillRect(0, 0, c.canvas.width, c.canvas.height);
+}
+
+function drawSad(c, x, y, h) {
+  const s = h / 120;
+  c.save(); c.translate(x, y); c.scale(s, s);
+  const g = c.createLinearGradient(0, 0, 100, 120);
+  g.addColorStop(0, '#e4ff8a'); g.addColorStop(.55, '#b8ef16'); g.addColorStop(1, '#6b9a0a');
+  c.fillStyle = g; c.fill(new Path2D(SAD.drop));
+  c.lineCap = 'round';
+  c.strokeStyle = 'rgba(255,255,255,.45)'; c.lineWidth = 4; c.stroke(new Path2D(SAD.shine));
+  c.fillStyle = '#06130a'; c.beginPath();
+  c.moveTo(42.5, 80); c.arc(37, 80, 5.5, 0, Math.PI * 2); c.moveTo(68.5, 80); c.arc(63, 80, 5.5, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#06130a'; c.lineWidth = 4; c.stroke(new Path2D(SAD.brows));
+  c.lineWidth = 4.5; c.stroke(new Path2D(SAD.frown));
+  c.restore();
+}
+
+function drawCan(c, pct) {
+  const { x, y, w, h, r } = CAN, top = y + h * (1 - pct / 100);
+  c.save(); rr(c, x, y, w, h, r); c.clip();
+  c.fillStyle = '#1f4a24'; c.fillRect(x, y, w, h);
+  const g = c.createLinearGradient(0, top, 0, y + h);
+  g.addColorStop(0, '#cdf94a'); g.addColorStop(1, '#6b9a0a');
+  c.fillStyle = g; c.fillRect(x, top, w, y + h - top);
+  if (pct > 0.5) { c.fillStyle = 'rgba(228,255,138,.55)'; c.fillRect(x, top, w, 5); }
+  c.fillStyle = 'rgba(255,255,255,.12)'; rr(c, 44, 42, 8, 176, 4); c.fill();
+  c.restore();
+  c.lineWidth = 2; c.strokeStyle = 'rgba(148,200,13,.6)'; rr(c, x, y, w, h, r); c.stroke();
+  c.fillStyle = '#12301b'; c.strokeStyle = 'rgba(184,239,22,.26)'; c.lineWidth = 1;
+  rr(c, 42, 12, 76, 24, 9); c.fill(); c.stroke();
+  rr(c, 68, 6, 24, 8, 4); c.fill(); c.stroke();
+  c.fillStyle = '#8fa98a'; c.strokeStyle = '#8fa98a'; c.lineWidth = 1.5;
+  c.font = `700 11px ${FONT}`; c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (const p of [0, 25, 50, 75, 100]) {
+    const ty = y + h * (1 - p / 100);
+    c.beginPath(); c.moveTo(26, ty); c.lineTo(32, ty); c.stroke();
+    if (p % 50 === 0) c.fillText(String(p), 21, ty);
+  }
+}
+
+function drawCard() {
+  const cv = $('#card'), e = S.today;
+  if (!cv || !e) return;
+  const W = cv.width, H = cv.height, c = cv.getContext('2d');
+  const tier = tierOf(e.score), cx = context(e), st = streak();
+  const ink = '#f3ffe5', ink2 = '#c5dbb8', ink3 = '#8fa98a', dew = '#b8ef16';
+  S.blob = null;
+  c.save(); c.clearRect(0, 0, W, H);
+
+  const bg = c.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#103018'); bg.addColorStop(1, '#050f08');
+  c.fillStyle = bg; c.fillRect(0, 0, W, H);
+  glow(c, 90, 40, 820, 'rgba(184,239,22,.28)'); glow(c, W, H, 820, 'rgba(77,148,255,.22)');
+  c.fillStyle = 'rgba(255,77,90,.10)'; c.beginPath();
+  c.moveTo(W * .64, 0); c.lineTo(W * .76, 0); c.lineTo(W * .30, H); c.lineTo(W * .18, H); c.closePath(); c.fill();
+  let seed = Number(e.date.replace(/-/g, '')) % 2147483647 || 1;
+  const rnd = () => (seed = seed * 48271 % 2147483647) / 2147483647;
+  c.lineWidth = 2;
+  for (let i = 0; i < 28; i++) {
+    c.strokeStyle = `rgba(184,239,22,${(.10 + rnd() * .18).toFixed(2)})`;
+    c.beginPath(); c.arc(rnd() * W, rnd() * H, 6 + rnd() * 28, 0, Math.PI * 2); c.stroke();
+  }
+  rr(c, 26, 26, W - 52, H - 52, 40); c.strokeStyle = 'rgba(184,239,22,.4)'; c.lineWidth = 3; c.stroke();
+
+  // header
+  drawSad(c, 78, 62, 120);
+  c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+  c.font = `italic 900 64px ${FONT}`; c.fillStyle = dew; c.fillText('DEW', 204, 118);
+  const dw = c.measureText('DEW').width;
+  c.fillStyle = ink; c.fillText('-PRESSION', 204 + dw, 118);
+  c.font = `800 26px ${FONT}`; c.fillStyle = ink3; c.fillText(`INDEX  ·  FOR ${NAME.toUpperCase()}`, 206, 162);
+  c.textAlign = 'right'; c.fillStyle = ink2;
+  c.fillText(fmtDate(e.date, { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase(), W - 78, 118);
+  c.fillStyle = ink3; c.fillText(String(dobj(e.date).getFullYear()), W - 78, 162);
+
+  // hero: can gauge and score
+  c.save(); c.translate(70, 232); c.scale(1.66, 1.66); drawCan(c, e.score); c.restore();
+  c.textAlign = 'center'; c.font = `800 20px ${FONT}`; c.fillStyle = ink3;
+  c.letterSpacing = '3px'; c.fillText('DEW-O-METER', 205, 656); c.letterSpacing = '0px';
+  const mid = 676;
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  const num = String(e.score), size = fit(c, num, 640, 340, s => `italic 900 ${s}px ${FONT}`), base = 232 + size * .8;
+  c.save(); c.shadowColor = 'rgba(184,239,22,.55)'; c.shadowBlur = 44; c.fillStyle = dew;
+  c.fillText(num, mid, base); c.restore();
+  c.font = `800 34px ${FONT}`; c.fillStyle = ink3; c.fillText('OUT OF 100', mid, base + 58);
+  const tags = [];
+  if (cx.isPB) tags.push(['NEW PERSONAL BEST', '#ff4d5a', '#2a0408']);
+  if (st > 1) tags.push([`${st}-DAY STREAK`, 'rgba(184,239,22,.18)', ink]);
+  c.font = `900 italic 26px ${FONT}`; c.textAlign = 'left';
+  const tw = tags.map(([txt]) => c.measureText(txt).width + 40);
+  let tx = mid - (tw.reduce((a, b) => a + b, 0) + 12 * (tags.length - 1)) / 2;
+  tags.forEach(([txt, bgc, fgc], i) => {
+    rr(c, tx, base + 84, tw[i], 46, 23); c.fillStyle = bgc; c.fill();
+    c.fillStyle = fgc; c.fillText(txt, tx + 20, base + 84 + 33);
+    tx += tw[i] + 12;
+  });
+
+  // headline
+  c.textAlign = 'center';
+  const head = tier.head.toUpperCase();
+  fit(c, head, 940, 96, s => `italic 900 ${s}px ${FONT}`);
+  c.save(); c.shadowColor = 'rgba(255,77,90,.55)'; c.shadowBlur = 0; c.shadowOffsetX = 5; c.shadowOffsetY = 5;
+  c.fillStyle = dew; c.fillText(head, W / 2, 742); c.restore();
+  fit(c, tier.cheer, 920, 38, s => `italic 600 ${s}px ${FONT}`);
+  c.fillStyle = ink2; c.fillText(tier.cheer, W / 2, 798);
+  const cc = `CHIEF COMPLAINT: ${chiefComplaint(e.v).toUpperCase()}`;
+  fit(c, cc, 920, 28, s => `700 ${s}px ${MONO}`);
+  c.fillStyle = ink3; c.fillText(cc, W / 2, 850);
+
+  // meters
+  const rows = FACTORS.filter(f => !db.hide.has(f.id));
+  let y = 930;
+  for (const f of rows) {
+    const n = e.v[f.id];
+    c.save(); c.translate(84, y - 31); c.scale(1.6, 1.6);
+    c.lineWidth = 2; c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = dew; c.stroke(new Path2D(ICON[f.id]));
+    c.restore();
+    c.textAlign = 'left'; c.font = `800 32px ${FONT}`; c.fillStyle = ink; c.fillText(f.label, 140, y);
+    rr(c, 410, y - 25, 390, 18, 9); c.fillStyle = '#1f4a24'; c.fill();
+    if (n > 0) { rr(c, 410, y - 25, Math.max(18, 390 * rate(n)), 18, 9); c.fillStyle = dew; c.fill(); }
+    c.textAlign = 'right'; c.fillStyle = ink; c.font = `800 32px ${FONT}`; c.fillText(valText(f, n), W - 84, y);
+    y += 62;
+  }
+
+  c.textAlign = 'center'; c.font = `600 22px ${FONT}`; c.fillStyle = ink3;
+  c.fillText('For entertainment only. Not affiliated with PepsiCo or Mountain Dew.', W / 2, H - 52);
+  c.restore();
+  cv.toBlob(b => { S.blob = b; }, 'image/png');
+}
+
+function shareText(e) {
+  const tier = tierOf(e.score);
+  const bits = FACTORS.filter(f => !db.hide.has(f.id)).map(f => (f.count ? valText(f, e.v[f.id]) : `${f.label} ${e.v[f.id]}/10`));
+  return [`${NAME}’s Dew-pression Index: ${e.score}/100`, `${tier.head.toUpperCase()}. ${tier.cheer}`, bits.join(' · ')].filter(Boolean).join('\n');
+}
+
+const getBlob = () => S.blob ? Promise.resolve(S.blob) : new Promise(res => $('#card').toBlob(res, 'image/png'));
+
+function download(blob, name) {
+  const u = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch { /* fall back below */ }
+  const ta = document.createElement('textarea');
+  ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-999px;top:0;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch { /* ignore */ }
+  ta.remove();
+  return ok;
+}
+
+// The blob is ready ahead of time, so navigator.share runs inside the tap (Safari needs that).
+function shareCard() {
+  if (S.blob) shareBlob(S.blob); else getBlob().then(shareBlob);
+}
+
+function shareBlob(blob) {
+  const e = S.today, text = shareText(e), name = `dew-pression-${e.date}.png`;
+  const data = { files: [new File([blob], name, { type: 'image/png' })], title: 'Dew-pression Index', text };
+  const sent = navigator.canShare && navigator.canShare(data) ? navigator.share(data)
+    : navigator.share ? navigator.share({ title: data.title, text })
+    : Promise.reject();
+  sent.catch(async err => {
+    if (err && err.name === 'AbortError') return;
+    download(blob, name);
+    toast((await copyText(text)) ? 'Image saved. Text copied.' : 'Image saved.');
+  });
+}
+
+/* ---------- Effects ---------- */
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+function bubbles() {
+  const wrap = $('#bubbles');
+  for (let i = 0; i < 16; i++) {
+    const s = document.createElement('span'), size = 6 + Math.random() * 22;
+    s.style.cssText = `left:${Math.random() * 100}%;width:${size}px;height:${size}px;animation-duration:${9 + Math.random() * 14}s;animation-delay:${-Math.random() * 20}s;--sway:${Math.round(Math.random() * 40 - 20)}px`;
+    wrap.appendChild(s);
+  }
+}
+
+function countUp(score) {
+  const num = $('#num'), svg = $('#gauge svg');
+  if (reduced()) { num.textContent = score; setCan(svg, score); return; }
+  const t0 = performance.now(), dur = 1300;
+  const step = t => {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    num.textContent = Math.round(score * e); setCan(svg, score * e);
+    if (k < 1) S.raf = requestAnimationFrame(step);
+  };
+  S.raf = requestAnimationFrame(step);
+}
+
+function confetti() {
+  if (reduced() || S.screen !== 'result') return;
+  const cv = document.createElement('canvas'), dpr = Math.min(devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:50';
+  document.body.appendChild(cv);
+  const c = cv.getContext('2d'), cols = ['#b8ef16', '#e4ff8a', '#ff4d5a', '#4d94ff', '#ffffff'];
+  c.scale(dpr, dpr);
+  const ps = Array.from({ length: 90 }, () => ({
+    x: W / 2 + (Math.random() - .5) * 80, y: H * .35, vx: (Math.random() - .5) * 14, vy: -Math.random() * 14 - 4,
+    s: 5 + Math.random() * 7, r: Math.random() * 6, vr: (Math.random() - .5) * .4, col: cols[(Math.random() * cols.length) | 0],
+  }));
+  const t0 = performance.now();
+  const tick = t => {
+    const k = (t - t0) / 2600;
+    c.clearRect(0, 0, W, H);
+    for (const p of ps) {
+      p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      c.save(); c.globalAlpha = Math.max(0, 1 - k); c.translate(p.x, p.y); c.rotate(p.r);
+      c.fillStyle = p.col; c.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); c.restore();
+    }
+    if (k < 1) requestAnimationFrame(tick); else cv.remove();
+  };
+  requestAnimationFrame(tick);
+}
+
+let audio;
+function psst() {
+  if (!db.sound) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audio, t = ctx.currentTime, len = Math.floor(ctx.sampleRate * .5);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+    const src = ctx.createBufferSource(), hp = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = buf; hp.type = 'highpass'; hp.frequency.value = 3500;
+    g.gain.setValueAtTime(.25, t); g.gain.exponentialRampToValueAtTime(.001, t + .5);
+    src.connect(hp); hp.connect(g); g.connect(ctx.destination); src.start(t);
+  } catch { /* no audio */ }
+}
+
+/* ---------- Actions and routing ---------- */
+function go(screen, state) {
+  Object.assign(S, state || {}, { screen });
+  try { history.pushState({ screen, step: S.step }, ''); } catch { /* sandboxed */ }
+  render();
+  window.scrollTo(0, 0);
+}
+
+function startDraft() {
+  const src = db.entries[dkey()] || sorted().pop();
+  S.draft = Object.fromEntries(FACTORS.map(f => [f.id, src ? src.v[f.id] : f.count ? 4 : 5]));
+}
+
+function syncStep() {
+  const f = FACTORS[S.step], n = S.draft[f.id];
+  $('#val').textContent = n;
+  $('#note').textContent = noteOf(f, n);
+  $('.step').style.setProperty('--heat', Math.min(n, 10) / 10);
+  if (f.count) {
+    $$('.cans svg').forEach((s, i) => s.classList.toggle('on', i < n));
+    $('#over').hidden = n <= 10;
+    $('[data-act="dec"]').disabled = n <= 0;
+    $('[data-act="inc"]').disabled = n >= f.max;
+  } else {
+    const r = $('#rate');
+    r.style.setProperty('--p', n / 10);
+    r.setAttribute('aria-valuetext', `${n} out of 10. ${noteOf(f, n)}`);
+  }
+}
+
+function calc() {
+  S.screen = 'calc';
+  render();
+  window.scrollTo(0, 0);
+}
+
+function finish() {
+  cancelAnimationFrame(S.raf);
+  const v = { ...S.draft }, e = { date: dkey(), v, score: scoreOf(v) };
+  db.entries[e.date] = e;
+  if (!persist()) db.canSave = false;
+  S.today = e;
+  go('result');
+}
+
+const ACT = {
+  start() { startDraft(); go('step', { step: 0 }); },
+  retake() { ACT.start(); },
+  view() {
+    const e = db.entries[dkey()];
+    if (e) { S.today = e; go('result'); }
+  },
+  home() { go('home'); },
+  history() { go('history'); },
+  back() { if (S.step > 0) go('step', { step: S.step - 1 }); else go('home'); },
+  next() { if (S.step < FACTORS.length - 1) go('step', { step: S.step + 1 }); else calc(); },
+  inc() {
+    const f = FACTORS[S.step];
+    if (S.draft[f.id] < f.max) { S.draft[f.id]++; syncStep(); psst(); buzz(10); }
+  },
+  dec() {
+    const f = FACTORS[S.step];
+    if (S.draft[f.id] > 0) { S.draft[f.id]--; syncStep(); buzz(6); }
+  },
+  skip() { finish(); },
+  share() { shareCard(); },
+  async save() {
+    const e = S.today;
+    download(await getBlob(), `dew-pression-${e.date}.png`);
+    toast('Image saved.');
+  },
+  async copy() { toast((await copyText(shareText(S.today))) ? 'Text copied.' : 'Could not copy. Long-press the text instead.'); },
+  range(b) {
+    S.range = Number(b.dataset.range);
+    render(false);
+    $(`[data-range="${S.range}"]`).focus({ preventScroll: true });
+  },
+  sound() {
+    db.sound = !db.sound; persist();
+    const b = $('[data-act="sound"]');
+    b.setAttribute('aria-pressed', db.sound);
+    b.innerHTML = icon(db.sound ? 'sound' : 'mute');
+    toast(db.sound ? 'Can-crack sound on.' : 'Can-crack sound off.');
+    psst();
+  },
+  wipe() {
+    if (!confirm('Delete every saved morning? This cannot be undone.')) return;
+    db.entries = {}; S.today = null; persist();
+    render(false);
+  },
+};
+
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-act]');
+  if (b && !b.disabled && ACT[b.dataset.act]) ACT[b.dataset.act](b);
+});
+
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.id === 'rate') { S.draft[FACTORS[S.step].id] = Number(t.value); syncStep(); }
+  else if (t.dataset && t.dataset.hide) {
+    if (t.checked) db.hide.delete(t.dataset.hide); else db.hide.add(t.dataset.hide);
+    persist(); drawCard();
+  }
+});
+
+document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#trend')) deactivate(); });
+
+window.addEventListener('popstate', ev => {
+  const st = ev.state || { screen: 'home' };
+  S.screen = st.screen; S.step = st.step || 0;
+  if (S.screen === 'calc' || (S.screen === 'result' && !S.today) || (S.screen === 'step' && !S.draft)) S.screen = 'home';
+  render();
+});
+
+let resizeFrame = 0;
+window.addEventListener('resize', () => {
+  if (S.screen !== 'history') return;
+  cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(renderTrend);
+});
+
+document.body.insertAdjacentHTML('afterbegin', sprite());
+load();
+S.today = db.entries[dkey()] || null;
+bubbles();
+try { history.replaceState({ screen: 'home', step: 0 }, ''); } catch { /* sandboxed */ }
+render();
+})();
+</script>
+</body>
+</html>

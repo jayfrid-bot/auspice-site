@@ -1,0 +1,16 @@
+{
+  "name": "Dew-pression Index",
+  "short_name": "Dew-pression",
+  "description": "A daily morning misery assessment. The sadder the score, the better the day.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050f08",
+  "theme_color": "#050f08",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
